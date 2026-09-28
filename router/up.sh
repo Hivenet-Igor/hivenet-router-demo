@@ -4,9 +4,11 @@
 #
 #   ./up.sh <address> [<https-url-of-port-8888>]
 #
-# <address> is the public IP (or DNS name) the agents use to reach this VM
-# on TCP 9001 and 9000. Override the ports with ROUTER_GRPC_PORT and
-# ROUTER_P2P_PORT. Secrets are created once in secrets/ and reused.
+# <address> is the public IP or DNS name the agents use to reach this VM.
+# The router listens on TCP 9001 (gRPC) and 9000 (libp2p). If your cloud
+# publishes them on other ports, pass the public ones:
+#   GRPC_PUBLIC_PORT=33539 P2P_PUBLIC_PORT=32028 ./up.sh <address> <url>
+# Secrets are created once in secrets/ and reused.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -15,6 +17,8 @@ URL="${2:-https://<this-instance>-8888.<location>.tenants.hivecompute.ai}"
 URL="${URL%/}"
 GRPC_PORT="${ROUTER_GRPC_PORT:-9001}"
 P2P_PORT="${ROUTER_P2P_PORT:-9000}"
+GRPC_PUBLIC="${GRPC_PUBLIC_PORT:-$GRPC_PORT}"
+P2P_PUBLIC="${P2P_PUBLIC_PORT:-$P2P_PORT}"
 if [[ "$ADDR" =~ ^[0-9]+(\.[0-9]+){3}$ ]]; then PROTO=ip4; else PROTO=dns4; fi
 
 umask 077
@@ -46,7 +50,7 @@ printf 'HIVENET_ROUTER_JWT_SECRET=%s\nHIVENET_ROUTER_ADMIN_API_KEYS=%s\n' "$JWT"
 cat > .env <<EOF
 ROUTER_GRPC_PORT=$GRPC_PORT
 ROUTER_P2P_PORT=$P2P_PORT
-ROUTER_P2P_MADDR=/$PROTO/$ADDR/tcp/$P2P_PORT
+ROUTER_P2P_MADDR=/$PROTO/$ADDR/tcp/$P2P_PUBLIC
 GRAFANA_PASSWORD=$GRAFANA
 EOF
 chmod 644 secrets/auth.yaml
@@ -65,7 +69,7 @@ cat <<EOF
 cat > ~/hivenet-router-demo/gpu/.env <<'X'
 HIVENET_ROUTER_JWT_SECRET=$JWT
 ROUTER_ADDR=$ADDR
-ROUTER_GRPC_PORT=$GRPC_PORT
+ROUTER_GRPC_PORT=$GRPC_PUBLIC
 X
 
 ──────────────── paste on the laptop ────────────────
@@ -73,9 +77,10 @@ cat > ~/hivenet-demo.env <<'X'
 export ROUTER=$URL
 export KEY=$KEY
 export ADMIN=$ADMIN
-export HIVENET_ROUTER_JWT_SECRET=$JWT ROUTER_ADDR=$ADDR ROUTER_GRPC_PORT=$GRPC_PORT
+export HIVENET_ROUTER_JWT_SECRET=$JWT ROUTER_ADDR=$ADDR ROUTER_GRPC_PORT=$GRPC_PUBLIC
 X
 . ~/hivenet-demo.env
 
+Agents dial $ADDR:$GRPC_PUBLIC (gRPC) and $ADDR:$P2P_PUBLIC (libp2p)
 Grafana: port 3000 · user admin · password $GRAFANA
 EOF

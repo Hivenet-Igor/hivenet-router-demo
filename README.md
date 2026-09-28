@@ -47,6 +47,13 @@ cd ~/hivenet-router-demo/router
 ./up.sh <router-public-ip> https://<instance-id>-8888.<location>.tenants.hivecompute.ai
 ```
 
+If your cloud publishes TCP 9001 and 9000 on other ports (Compute with Hivenet shows them as `<instance-id>-TCP.tenants.hivecompute.ai <port>`), pass the host and the public ports:
+
+```bash
+GRPC_PUBLIC_PORT=<port-for-9001> P2P_PUBLIC_PORT=<port-for-9000> \
+  ./up.sh <instance-id>-TCP.tenants.hivecompute.ai https://<instance-id>-8888.<location>.tenants.hivecompute.ai
+```
+
 It creates the secrets (agent secret, client API key, admin key, Grafana password), starts the router, Prometheus and Grafana, and prints two blocks: one to paste on the GPU VM, one to paste on the laptop.
 
 **3 · GPU VM.** Paste the first block, then start the agents:
