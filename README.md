@@ -72,7 +72,7 @@ cd ~/hivenet-router-demo/gpu
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"model":"HivenetQuant/Qwen3.6-35B-A3B","max_tokens":200,
        "chat_template_kwargs":{"enable_thinking":false},
-       "messages":[{"role":"user","content":"Tell me a short joke about computers."}]}' \
+       "messages":[{"role":"user","content":"In one paragraph, explain how a load balancer decides where to send a request."}]}' \
   | jq -r '.choices[0].message.content'
 ```
 

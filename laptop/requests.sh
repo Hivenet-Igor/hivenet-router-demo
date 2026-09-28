@@ -19,24 +19,30 @@ curl -s -H "Authorization: Bearer $ADMIN" $ROUTER/admin/routing-table | jq '.age
 
 # --- model A, thinking off ---------------------------------------------------
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"model":"'$A'","max_tokens":200,
+  -d '{"model":"HivenetQuant/Qwen3.8-27B","max_tokens":400,
        "chat_template_kwargs":{"enable_thinking":false},
-       "messages":[{"role":"user","content":"What is the capital of Italy? Answer in one word."}]}' \
-  | jq -r '.choices[0].message.content'
+       "messages":[{"role":"system","content":"Answer in plain text, no Markdown."},
+         {"role":"user","content":"In three short bullet points: why do companies run open models on their own GPUs?"}]}' \
+  | jq -r '"── \(.model) · \(.usage.completion_tokens) tokens ──\n\n\(.choices[0].message.content)\n"' \
+  | fold -s -w 100
 
 # --- model B, streamed -------------------------------------------------------
+echo "── HivenetQuant/Qwen3.6-35B-A3B · streaming ──"; echo
 curl -sN $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"model":"'$B'","stream":true,"max_tokens":200,
+  -d '{"model":"HivenetQuant/Qwen3.6-35B-A3B","stream":true,"max_tokens":400,
        "chat_template_kwargs":{"enable_thinking":false},
-       "messages":[{"role":"user","content":"Tell me a short joke about computers."}]}' \
+       "messages":[{"role":"system","content":"Answer in plain text, no Markdown."},
+         {"role":"user","content":"In one paragraph, explain to a non-technical audience how a load balancer decides where to send a request."}]}' \
   | sed -un 's/^data: //p' | grep --line-buffered -v '^\[DONE\]' \
-  | jq -j --unbuffered '.choices[0].delta.content // empty'; echo
+  | jq -j --unbuffered '.choices[0].delta.content // empty' | fold -s -w 100; echo
 
 # --- model A, thinking on: reasoning and answer come back separately ---------
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-  -d '{"model":"'$A'","max_tokens":2048,
-       "messages":[{"role":"user","content":"What is 12 times 12?"}]}' \
-  | jq '.choices[0].message | {reasoning: ((.reasoning // .reasoning_content // "")[:300] + " ..."), answer: .content}'
+  -d '{"model":"HivenetQuant/Qwen3.8-27B","max_tokens":2048,
+       "messages":[{"role":"system","content":"Answer in plain text, no Markdown."},
+         {"role":"user","content":"A train leaves Paris at 14:20 and the trip takes 2 h 55 min. What time does it arrive, and how did you work it out?"}]}' \
+  | jq -r '.choices[0].message | "── reasoning (first lines) ──\n\((.reasoning // .reasoning_content // "")[:400])…\n\n── answer ──\n\(.content)\n"' \
+  | fold -s -w 100
 
 # --- 20 parallel calls across both models ------------------------------------
 ( for i in $(seq 1 10); do for m in $A $B; do
