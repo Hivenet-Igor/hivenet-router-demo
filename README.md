@@ -57,7 +57,7 @@ GRPC_PUBLIC_PORT=<port-for-9001> P2P_PUBLIC_PORT=<port-for-9000> \
   ./up.sh <instance-id>-TCP.tenants.hivecompute.ai https://<instance-id>-8888.<location>.tenants.hivecompute.ai
 ```
 
-It creates the secrets (agent secret, client API key, admin key, Grafana password), starts the router, Prometheus and Grafana, and prints two blocks: one to paste on the GPU VM, one to paste on the laptop.
+It creates the secrets (agent secret, client API key, admin key, a random Grafana password; set `GRAFANA_PASSWORD=...` to choose it), starts the router, Prometheus and Grafana, and prints two blocks: one to paste on the GPU VM, one to paste on the laptop.
 
 **3 · GPU VM.** Paste the first block, then start the agents:
 

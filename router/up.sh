@@ -8,7 +8,8 @@
 # The router listens on TCP 9001 (gRPC) and 9000 (libp2p). If your cloud
 # publishes them on other ports, pass the public ones:
 #   GRPC_PUBLIC_PORT=33539 P2P_PUBLIC_PORT=32028 ./up.sh <address> <url>
-# Secrets are created once in secrets/ and reused.
+# Secrets are created once in secrets/ and reused. Set GRAFANA_PASSWORD to
+# choose the Grafana admin password instead of a random one.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -43,6 +44,7 @@ EOF
 fi
 # shellcheck disable=SC1091
 . secrets/secrets.env
+GRAFANA="${GRAFANA_PASSWORD:-$GRAFANA}"   # GRAFANA_PASSWORD=admin ./up.sh ... for a simple demo login
 HASH=$(printf %s "$KEY" | sha256sum | cut -d' ' -f1)
 
 cat > secrets/auth.yaml <<EOF
