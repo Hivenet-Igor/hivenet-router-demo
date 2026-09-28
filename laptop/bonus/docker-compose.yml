@@ -1,0 +1,38 @@
+# Bonus: a GPU behind home NAT joins the same router.
+# Ollama serves a small model; the agent dials out to the router.
+# Needs HIVENET_ROUTER_JWT_SECRET, ROUTER_ADDR, ROUTER_GRPC_PORT in the shell
+# (they are in ~/hivenet-demo.env, printed by the router's up.sh).
+
+services:
+  ollama:
+    image: ollama/ollama:0.34.4
+    container_name: ollama
+    runtime: nvidia
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+    ports: ["127.0.0.1:11435:11434"]
+    volumes: ["ollama:/root/.ollama"]
+
+  agent:
+    image: ghcr.io/hivenetoss/hivenet-agent:v0.1.3
+    container_name: agent-laptop
+    network_mode: host
+    runtime: nvidia
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:?source ~/hivenet-demo.env}
+    volumes: ["agent-laptop:/app/data"]
+    depends_on: [ollama]
+    command:
+      - --engine=ollama
+      - --backend-url=http://127.0.0.1:11435
+      - --model=${OLLAMA_MODEL:-qwen3:1.7b}
+      - --region=EU-France
+      - --organization=my laptop
+      - --gpu-model=${GPU_MODEL:-RTX4050}
+      - --identity-path=/app/data/agent.key
+      - --router-grpc=${ROUTER_ADDR:?source ~/hivenet-demo.env}:${ROUTER_GRPC_PORT:-9001}
+
+volumes:
+  ollama:
+  agent-laptop:

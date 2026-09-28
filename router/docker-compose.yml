@@ -1,0 +1,55 @@
+# Router VM: Hivenet Router + Prometheus + Grafana.
+# Start it with ./up.sh, which writes secrets/ and .env first.
+#
+# Ports on this VM:
+#   8888  HTTPS  OpenAI-compatible API (publish as an HTTPS port)
+#   3000  HTTPS  Grafana               (publish as an HTTPS port)
+#   9001  TCP    gRPC, agents authenticate here (the router runs its own TLS)
+#   9000  TCP    libp2p, the agents' data connection
+#   2112, 9090   metrics and Prometheus, local only
+
+services:
+  router:
+    image: ghcr.io/hivenetoss/hivenet-router:v0.1.3
+    container_name: hivenet-router
+    restart: unless-stopped
+    network_mode: host
+    env_file: secrets/router.env
+    environment:
+      HIVENET_ROUTER_AUTH_CONFIG: /etc/hivenet/auth.yaml
+    volumes:
+      - ./secrets/auth.yaml:/etc/hivenet/auth.yaml:ro
+      - router-data:/app/badger
+    command:
+      - --http-port=:8888
+      - --grpc-port=:${ROUTER_GRPC_PORT:-9001}
+      - --p2p-port=${ROUTER_P2P_PORT:-9000}
+      - --p2p-listen-addr=0.0.0.0
+      - --p2p-announce-addr=${ROUTER_P2P_MADDR:?run ./up.sh first}
+      - --disk-db-path=/app/badger
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    container_name: prometheus
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.listen-address=127.0.0.1:9090
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    container_name: grafana
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?run ./up.sh first}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/hivenet-router.json
+    volumes:
+      - ./grafana:/etc/grafana/provisioning:ro
+
+volumes:
+  router-data:
