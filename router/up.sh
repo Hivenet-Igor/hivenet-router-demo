@@ -12,6 +12,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+if ! docker compose version >/dev/null 2>&1; then
+  echo "Docker with the Compose plugin is required. Install it with:" >&2
+  echo "  curl -fsSL https://get.docker.com | sudo sh && sudo usermod -aG docker \$USER && newgrp docker" >&2
+  exit 1
+fi
+
 ADDR="${1:?usage: ./up.sh <public IP or DNS name of this VM> [<https-url-of-port-8888>]}"
 URL="${2:-https://<this-instance>-8888.<location>.tenants.hivecompute.ai}"
 URL="${URL%/}"
