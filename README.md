@@ -82,6 +82,12 @@ curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-
 cd laptop/bonus && ./up.sh
 ```
 
+## Routing policy
+
+The router loads [`router/policy.yaml`](router/policy.yaml): a primary step that only uses the agents on the GPU VM (`organization: Hivenet Compute`) and skips any agent whose KV cache, engine queue, GPU temperature, success rate or failure streak crosses a threshold; least-loaded ranking; a front-door shed that answers 429 when the whole pool is saturated; and a fallback step, `any-agent`, that takes everything else, such as the laptop GPU in the bonus.
+
+You can read and replace it live with `GET` and `PUT /admin/policy` (see [`laptop/requests.sh`](laptop/requests.sh)), and the router's metrics show which step served each model (`hivenet_policy_primary_routed_total`, `hivenet_policy_fallback_routed_total`). Policy reference: [routerdocs.hivenet.com](https://routerdocs.hivenet.com/routing/policy-yaml-reference).
+
 ## Models and serving settings
 
 | | Qwen3.8 27B | Qwen3.6 35B-A3B |

@@ -1,0 +1,37 @@
+# Routing policy for the demo. Three layers, then a fallback step.
+# Reference: https://routerdocs.hivenet.com/routing/policy-yaml-reference
+#
+# Always applied before these layers: model, health, capability, previous
+# failures in this step, declared capacity.
+
+routing_policy:
+
+  # Layer 1 · static match: only agents on our Compute GPU VM.
+  match:
+    organization: "Hivenet Compute"
+
+  # Layer 2 · live gates: an agent breaching any of these is skipped for
+  # this request. Missing metrics (e.g. no KV cache on Ollama) pass.
+  exclude_if:
+    kv_cache_utilization: { gt: 0.90 }    # fraction 0-1
+    waiting_requests:     { gt: 20 }      # requests queued inside vLLM
+    gpu_temperature_c:    { gt: 80 }      # hottest GPU of the agent
+    success_rate:         { lt: 0.95 }    # new agents pass until they have history
+    consecutive_failures: { gte: 3 }
+
+  # Layer 3 · ranking: active requests / declared capacity, lowest first.
+  strategy: least-loaded
+  max_tries: 3
+
+# Front door: when the whole pool serving a model is under pressure,
+# answer 429 + Retry-After before queueing.
+shed_if:
+  kv_cache_utilization: { gt: 0.90 }
+  waiting_requests:     { gt: 20 }
+
+# Used when the primary step has no candidate left or runs out of tries.
+fallback_chain:
+  - name: any-agent
+    match: {}
+    strategy: least-loaded
+    max_tries: 1

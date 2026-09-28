@@ -19,6 +19,7 @@ services:
       HIVENET_ROUTER_AUTH_CONFIG: /etc/hivenet/auth.yaml
     volumes:
       - ./secrets/auth.yaml:/etc/hivenet/auth.yaml:ro
+      - ./policy.yaml:/etc/hivenet/policy.yaml:ro
       - router-data:/app/badger
     command:
       - --http-port=:8888
@@ -27,6 +28,7 @@ services:
       - --p2p-listen-addr=0.0.0.0
       - --p2p-announce-addr=${ROUTER_P2P_MADDR:?run ./up.sh first}
       - --disk-db-path=/app/badger
+      - --policy-file=/etc/hivenet/policy.yaml
 
   prometheus:
     image: prom/prometheus:v3.15.0

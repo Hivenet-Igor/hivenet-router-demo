@@ -68,6 +68,35 @@ for m in ["HivenetQuant/Qwen3.8-27B", "HivenetQuant/Qwen3.6-35B-A3B"]:
     print(f"{m:32s} -> {r.choices[0].message.content}")
 EOF
 
+# --- the active routing policy (router/policy.yaml) -------------------------
+curl -s -H "Authorization: Bearer $ADMIN" $ROUTER/admin/policy | jq '{
+  match: .routing_policy.match, gates: .routing_policy.exclude_if,
+  strategy: .routing_policy.strategy, fallback: [.fallback_chain[].name] }'
+
+# --- push a stricter policy live: GPUs above 20 °C count as too hot ----------
+curl -s -X PUT $ROUTER/admin/policy -H "Authorization: Bearer $ADMIN" \
+  -H 'Content-Type: text/yaml' --data-binary @- <<'EOF'
+routing_policy:
+  match: {organization: "Hivenet Compute"}
+  exclude_if: {gpu_temperature_c: {gt: 20}}
+  strategy: least-loaded
+fallback_chain:
+  - {name: any-agent, match: {}, strategy: least-loaded}
+EOF
+echo
+# every GPU is above 20 °C: the primary step empties, the fallback step serves
+curl -s -o /dev/null -w '%{http_code}\n' $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"'$A'","max_tokens":16,"messages":[{"role":"user","content":"Hi"}]}'
+
+# --- on the router VM: which step served each model ---------------------------
+#   curl -s localhost:2112/metrics | grep -E '^hivenet_policy_(primary|fallback)_routed_total'
+
+# --- restore the policy from the repo -----------------------------------------
+curl -s https://raw.githubusercontent.com/Hivenet-Igor/hivenet-router-demo/main/router/policy.yaml \
+  | curl -s -X PUT $ROUTER/admin/policy -H "Authorization: Bearer $ADMIN" \
+      -H 'Content-Type: text/yaml' --data-binary @-; echo
+
 # --- bonus: the laptop GPU model ---------------------------------------------
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"model":"qwen3:1.7b","max_tokens":200,"reasoning_effort":"none",
