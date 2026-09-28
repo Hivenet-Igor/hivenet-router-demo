@@ -32,7 +32,7 @@ echo
 docker --version 2>/dev/null || $SUDO docker --version
 docker compose version 2>/dev/null || $SUDO docker compose version
 if [ "${NEWGRP:-0}" = 1 ]; then
-  echo "Added $USER to the docker group. Run 'newgrp docker' (or log in again), then ./up.sh."
+  echo "Added $USER to the docker group (active at your next login; ./up.sh works right away)."
 else
   echo "Router VM ready. Next: ./up.sh"
 fi

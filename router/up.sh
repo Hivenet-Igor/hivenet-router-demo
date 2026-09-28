@@ -17,6 +17,10 @@ if ! docker compose version >/dev/null 2>&1; then
   echo "  curl -fsSL https://get.docker.com | sudo sh && sudo usermod -aG docker \$USER && newgrp docker" >&2
   exit 1
 fi
+# Right after setup.sh the docker group is not active in this shell yet:
+# fall back to sudo instead of asking for "newgrp docker".
+DOCKER=docker
+if ! docker info >/dev/null 2>&1 && sudo -n docker info >/dev/null 2>&1; then DOCKER="sudo docker"; fi
 
 ADDR="${1:?usage: ./up.sh <public IP or DNS name of this VM> [<https-url-of-port-8888>]}"
 URL="${2:-https://<this-instance>-8888.<location>.tenants.hivecompute.ai}"
@@ -61,7 +65,7 @@ GRAFANA_PASSWORD=$GRAFANA
 EOF
 chmod 644 secrets/auth.yaml
 
-docker compose up -d
+$DOCKER compose up -d
 printf 'Waiting for the router'
 for _ in $(seq 1 30); do
   curl -sf localhost:8888/health >/dev/null && break
