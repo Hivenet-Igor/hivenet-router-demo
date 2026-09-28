@@ -16,11 +16,11 @@ Everything runs in Docker. The GPU machines never open an inbound port: each age
 
 | Machine | Needs | Inbound ports |
 |---|---|---|
-| Router VM | Docker, git, openssl | HTTPS `8888` (API), `3000` (Grafana) · TCP `9001` (gRPC), `9000` (libp2p) |
-| GPU VM | NVIDIA driver, Docker, NVIDIA Container Toolkit, git, Python | none |
+| Router VM | Docker, git, openssl (`router/setup.sh`) | HTTPS `8888` (API), `3000` (Grafana) · TCP `9001` (gRPC), `9000` (libp2p) |
+| GPU VM | NVIDIA driver, then `gpu/setup.sh` adds Docker, NVIDIA Container Toolkit, git, pip | none |
 | Laptop | curl, jq, Python with `openai` · Docker + NVIDIA runtime for the bonus | none |
 
-The agents read GPU temperature, power and memory through the NVIDIA container runtime, so nothing else is needed for telemetry. `gpu/install-nvidia-toolkit.sh` installs the toolkit if your image lacks it.
+The agents read GPU temperature, power and memory through the NVIDIA container runtime, so nothing else is needed for telemetry. `router/setup.sh` and `gpu/setup.sh` install whatever is missing (Docker, the Compose plugin, the NVIDIA Container Toolkit) without prompts, reboots or service restarts; the GPU one refuses to restart Docker while containers are running.
 
 On Compute with Hivenet, set these when you create the router VM: HTTPS ports `8888, 3000` and TCP ports `9000, 9001`. Each HTTPS port is published as `https://<instance-id>-<port>.<location>.tenants.hivecompute.ai`.
 
@@ -36,7 +36,8 @@ git clone https://github.com/Hivenet-Igor/hivenet-router-demo.git ~/hivenet-rout
 
 ```bash
 cd ~/hivenet-router-demo/gpu
-./prepare.sh
+./setup.sh        # installs what is missing
+./prepare.sh      # checks GPUs and ports, downloads the weights
 docker compose up -d vllm-27b vllm-35b      # a few minutes to load
 ```
 
@@ -44,6 +45,7 @@ docker compose up -d vllm-27b vllm-35b      # a few minutes to load
 
 ```bash
 cd ~/hivenet-router-demo/router
+./setup.sh        # installs Docker if missing
 ./up.sh <router-public-ip> https://<instance-id>-8888.<location>.tenants.hivecompute.ai
 ```
 
