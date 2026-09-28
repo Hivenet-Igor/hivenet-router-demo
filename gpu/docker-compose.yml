@@ -2,6 +2,8 @@
 #   GPUs 0,1  vLLM  HivenetQuant/Qwen3.8-27B      -> 127.0.0.1:8001  <- agent-27b
 #   GPUs 2,3  vLLM  HivenetQuant/Qwen3.6-35B-A3B  -> 127.0.0.1:8002  <- agent-35b
 # No inbound port: the agents dial out to the router.
+# vLLM version: v0.30.0 by default. To fall back to the previously
+# certified image, start with: VLLM_VERSION=v0.26.0 docker compose up -d ...
 # .env (pasted from the router's up.sh) sets HIVENET_ROUTER_JWT_SECRET,
 # ROUTER_ADDR and ROUTER_GRPC_PORT.
 
@@ -28,7 +30,7 @@ x-agent: &agent
 services:
   vllm-27b:
     <<: *vllm
-    image: vllm/vllm-openai:v0.26.0
+    image: vllm/vllm-openai:${VLLM_VERSION:-v0.30.0}
     environment:
       <<: *vllm-env
       NVIDIA_VISIBLE_DEVICES: "0,1"
@@ -53,7 +55,7 @@ services:
 
   vllm-35b:
     <<: *vllm
-    image: vllm/vllm-openai:v0.25.1
+    image: vllm/vllm-openai:${VLLM_VERSION:-v0.30.0}
     environment:
       <<: *vllm-env
       NVIDIA_VISIBLE_DEVICES: "2,3"

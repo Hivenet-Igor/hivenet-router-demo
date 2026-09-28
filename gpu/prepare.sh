@@ -37,8 +37,7 @@ hf download HivenetQuant/Qwen3.8-27B-NVFP4 --local-dir "$MODELS/Qwen3.8-27B-NVFP
 hf download HivenetQuant/Qwen3.6-35B-A3B-NVFP4 --local-dir "$MODELS/Qwen3.6-35B-A3B-NVFP4"
 
 echo "== Images"
-docker pull vllm/vllm-openai:v0.26.0
-docker pull vllm/vllm-openai:v0.25.1
+docker pull "vllm/vllm-openai:${VLLM_VERSION:-v0.30.0}"
 
 mkdir -p ids
 echo "Ready. Start the models with: docker compose up -d vllm-27b vllm-35b"

@@ -86,8 +86,10 @@ cd laptop/bonus && ./up.sh
 |---|---|---|
 | Checkpoint | [`HivenetQuant/Qwen3.8-27B-NVFP4`](https://huggingface.co/HivenetQuant/Qwen3.8-27B-NVFP4) | [`HivenetQuant/Qwen3.6-35B-A3B-NVFP4`](https://huggingface.co/HivenetQuant/Qwen3.6-35B-A3B-NVFP4) |
 | Type | dense, NVFP4 W4A4 | MoE (3B active), NVFP4 W4A16 |
-| vLLM | `v0.26.0`, TP2 | `v0.25.1`, TP2 |
+| vLLM | `v0.30.0`, TP2 | `v0.30.0`, TP2 |
 | Context | 262,144 tokens, FP8 KV cache | 262,144 tokens, FP8 KV cache |
+
+Both run on vLLM `v0.30.0`. To use another version, set it when starting: `VLLM_VERSION=v0.26.0 docker compose up -d vllm-27b vllm-35b`.
 
 Both are reasoning models with thinking on by default. Send `"chat_template_kwargs":{"enable_thinking":false}` for a direct answer. The W4A4 kernel needs a Blackwell GPU (RTX 5090 class).
 
