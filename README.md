@@ -103,13 +103,17 @@ Both are reasoning models with thinking on by default. Send `"chat_template_kwar
 
 ## Clean up
 
-This stops and removes the containers only. Model weights (`~/models`), images, volumes, keys and agent identities stay, so the next start downloads nothing. Do not add `-v` (it deletes volumes) or run `docker system prune`.
+This removes every container and gives the router a clean state: its routing table, per-key usage and quota counters, the Prometheus samples and the Grafana state are wiped, so the next demo starts at zero. Model weights (`~/models`), images, keys (`router/secrets`), agent identities (`gpu/ids`) and Ollama's model stay, so the next start downloads nothing.
+
+Use `-v` on the router VM only. On the laptop it would delete Ollama's model. Do not run `docker system prune` or `docker rmi`, they delete images.
 
 ```bash
 # GPU VM
 cd ~/hivenet-router-demo/gpu && docker compose down
-# router VM
-cd ~/hivenet-router-demo/router && docker compose down
+# router VM: also wipes history and metrics
+cd ~/hivenet-router-demo/router
+docker compose down -v
+docker volume prune -f      # unnamed volumes left by earlier runs
 # laptop
 cd laptop/bonus && docker compose down
 ```
