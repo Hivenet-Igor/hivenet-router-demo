@@ -20,7 +20,7 @@ services:
     runtime: nvidia
     environment:
       NVIDIA_VISIBLE_DEVICES: all
-      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:?source ~/hivenet-demo.env}
+      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:-}
     volumes: ["agent-laptop:/app/data"]
     depends_on: [ollama]
     command:
@@ -31,7 +31,7 @@ services:
       - --organization=my laptop
       - --gpu-model=${GPU_MODEL:-RTX4050}
       - --identity-path=/app/data/agent.key
-      - --router-grpc=${ROUTER_ADDR:?source ~/hivenet-demo.env}:${ROUTER_GRPC_PORT:-9001}
+      - --router-grpc=${ROUTER_ADDR:-}:${ROUTER_GRPC_PORT:-9001}
 
 volumes:
   ollama:
