@@ -3,7 +3,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 MODEL="${OLLAMA_MODEL:-qwen3:1.7b}"
-: "${HIVENET_ROUTER_JWT_SECRET:?load ~/hivenet-demo.env first}" "${ROUTER_ADDR:?load ~/hivenet-demo.env first}"
+# shellcheck disable=SC1090
+[ -f ~/hivenet-demo.env ] && . ~/hivenet-demo.env
+: "${HIVENET_ROUTER_JWT_SECRET:?paste the laptop block printed by the router first}" "${ROUTER_ADDR:?paste the laptop block printed by the router first}"
 
 docker compose up -d ollama
 until docker compose exec -T ollama ollama list >/dev/null 2>&1; do sleep 1; done
