@@ -63,7 +63,7 @@ It creates the secrets (agent secret, client API key, admin key, Grafana passwor
 
 ```bash
 cd ~/hivenet-router-demo/gpu
-./agents.sh      # checks .env and the router, starts both agents, follows their logs
+./agents.sh      # checks .env and the router, starts both agents, waits until registered
 ```
 
 **4 · Laptop.** Paste the second block, then try the requests in [`laptop/requests.sh`](laptop/requests.sh), one block at a time. For example:
