@@ -21,21 +21,21 @@ curl -s -H "Authorization: Bearer $ADMIN" $ROUTER/admin/routing-table | jq '.age
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"model":"'$A'","max_tokens":200,
        "chat_template_kwargs":{"enable_thinking":false},
-       "messages":[{"role":"user","content":"In one sentence: what is a sovereign cloud?"}]}' \
+       "messages":[{"role":"user","content":"What is the capital of Italy? Answer in one word."}]}' \
   | jq -r '.choices[0].message.content'
 
 # --- model B, streamed -------------------------------------------------------
 curl -sN $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"model":"'$B'","stream":true,"max_tokens":200,
        "chat_template_kwargs":{"enable_thinking":false},
-       "messages":[{"role":"user","content":"Write a haiku about GPUs."}]}' \
+       "messages":[{"role":"user","content":"Tell me a short joke about computers."}]}' \
   | sed -un 's/^data: //p' | grep --line-buffered -v '^\[DONE\]' \
   | jq -j --unbuffered '.choices[0].delta.content // empty'; echo
 
 # --- model A, thinking on: reasoning and answer come back separately ---------
 curl -s $ROUTER/v1/chat/completions -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
   -d '{"model":"'$A'","max_tokens":2048,
-       "messages":[{"role":"user","content":"Is 1001 a prime number? Answer in one line."}]}' \
+       "messages":[{"role":"user","content":"What is 12 times 12?"}]}' \
   | jq '.choices[0].message | {reasoning: ((.reasoning // .reasoning_content // "")[:300] + " ..."), answer: .content}'
 
 # --- 20 parallel calls across both models ------------------------------------
