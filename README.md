@@ -29,7 +29,8 @@ On Compute with Hivenet, set these when you create the router VM: HTTPS ports `8
 Clone this repository on the two VMs:
 
 ```bash
-git clone https://github.com/Hivenet-Igor/hivenet-router-demo.git ~/hivenet-router-demo
+git clone https://github.com/Hivenet-Igor/hivenet-router-demo.git ~/hivenet-router-demo \
+  || git -C ~/hivenet-router-demo pull       # already cloned: update it
 ```
 
 **1 · GPU VM, before the demo** (the weights are ~45 GB):
@@ -62,8 +63,7 @@ It creates the secrets (agent secret, client API key, admin key, Grafana passwor
 
 ```bash
 cd ~/hivenet-router-demo/gpu
-docker compose up -d agent-27b agent-35b
-docker compose logs -f agent-27b agent-35b   # look for "Registration successful"
+./agents.sh      # checks .env and the router, starts both agents, follows their logs
 ```
 
 **4 · Laptop.** Paste the second block, then try the requests in [`laptop/requests.sh`](laptop/requests.sh), one block at a time. For example:

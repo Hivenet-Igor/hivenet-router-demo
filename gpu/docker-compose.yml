@@ -5,7 +5,8 @@
 # vLLM version: v0.30.0 by default. To fall back to the previously
 # certified image, start with: VLLM_VERSION=v0.26.0 docker compose up -d ...
 # .env (pasted from the router's up.sh) sets HIVENET_ROUTER_JWT_SECRET,
-# ROUTER_ADDR and ROUTER_GRPC_PORT.
+# ROUTER_ADDR and ROUTER_GRPC_PORT. Start the models any time; start the
+# agents with ./agents.sh once .env is there.
 
 x-vllm: &vllm
   entrypoint: ["vllm", "serve"]
@@ -82,7 +83,7 @@ services:
     <<: *agent
     environment:
       NVIDIA_VISIBLE_DEVICES: "0,1"
-      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:?paste .env from the router}
+      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:-}
     command:
       - --engine=vllm
       - --backend-url=http://127.0.0.1:8001
@@ -96,13 +97,13 @@ services:
       - --replica-id=r0
       - --identity-path=/id/agent-27b.key
       - --p2p-listen-port=9100
-      - --router-grpc=${ROUTER_ADDR:?paste .env from the router}:${ROUTER_GRPC_PORT:-9001}
+      - --router-grpc=${ROUTER_ADDR:-}:${ROUTER_GRPC_PORT:-9001}
 
   agent-35b:
     <<: *agent
     environment:
       NVIDIA_VISIBLE_DEVICES: "2,3"
-      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:?paste .env from the router}
+      HIVENET_ROUTER_JWT_SECRET: ${HIVENET_ROUTER_JWT_SECRET:-}
     command:
       - --engine=vllm
       - --backend-url=http://127.0.0.1:8002
@@ -116,4 +117,4 @@ services:
       - --replica-id=r1
       - --identity-path=/id/agent-35b.key
       - --p2p-listen-port=9101
-      - --router-grpc=${ROUTER_ADDR:?paste .env from the router}:${ROUTER_GRPC_PORT:-9001}
+      - --router-grpc=${ROUTER_ADDR:-}:${ROUTER_GRPC_PORT:-9001}
