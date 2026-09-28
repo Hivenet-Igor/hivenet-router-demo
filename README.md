@@ -97,6 +97,8 @@ Both are reasoning models with thinking on by default. Send `"chat_template_kwar
 
 ## Clean up
 
+This stops and removes the containers only. Model weights (`~/models`), images, volumes, keys and agent identities stay, so the next start downloads nothing. Do not add `-v` (it deletes volumes) or run `docker system prune`.
+
 ```bash
 # GPU VM
 cd ~/hivenet-router-demo/gpu && docker compose down
