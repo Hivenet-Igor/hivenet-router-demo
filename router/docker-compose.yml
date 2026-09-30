@@ -10,7 +10,7 @@
 
 services:
   router:
-    image: ghcr.io/hivenetoss/hivenet-router:v0.1.3
+    image: ghcr.io/hivenetoss/hivenet-router:v0.1.5
     container_name: hivenet-router
     restart: unless-stopped
     network_mode: host

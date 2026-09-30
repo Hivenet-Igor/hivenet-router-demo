@@ -15,7 +15,7 @@ docker compose version
 
 echo "== GPUs visible inside a container (this is what the agents use for telemetry)"
 docker run --rm --runtime nvidia -e NVIDIA_VISIBLE_DEVICES=all \
-  --entrypoint nvidia-smi ghcr.io/hivenetoss/hivenet-agent:v0.1.3 \
+  --entrypoint nvidia-smi ghcr.io/hivenetoss/hivenet-agent:v0.1.5 \
   --query-gpu=index,name,memory.used,memory.total --format=csv \
   || fail "The NVIDIA container runtime is missing. Run ./setup.sh first."
 
